@@ -25,13 +25,16 @@ import (
 //go:embed command.md
 var resourceDoc string
 
-type Command struct{}
+type Command struct{
+	isRefreshing *bool
+}
 
 // Implementing Annotate lets you provide descriptions for resources and they will
 // be visible in the provider's schema and the generated SDKs.
 func (c *Command) Annotate(a infer.Annotator) {
 	a.Describe(&c, resourceDoc)
 }
+
 
 // The arguments for a remote Command resource.
 type CommandInputs struct {
@@ -46,6 +49,9 @@ type CommandInputs struct {
 	Connection             *Connection       `pulumi:"connection" provider:"secret"`
 	Environment            map[string]string `pulumi:"environment,optional"`
 	AddPreviousOutputInEnv *bool             `pulumi:"addPreviousOutputInEnv,optional"`
+	Read				  				 *string					 `pulumi:"read,optional"`
+	//ReadStdOut *string                      `pulumi:"readStdout" provider:"internal"`
+	//ReadStdErr *string                      `pulumi:"readStderr" provider:"internal"`
 }
 
 // Implementing Annotate lets you provide descriptions and default values for arguments and they will
@@ -65,10 +71,12 @@ with the variables in the form 'VAR=value command'.`)
 injected into the environment of the next run as PULUMI_COMMAND_STDOUT and PULUMI_COMMAND_STDERR.
 Defaults to true.`)
 	a.SetDefault(&c.AddPreviousOutputInEnv, true)
+	a.Describe(&c.Read, `Run a command and use the sdtout to define the state of the resource to determine if update/refresh are needed`)
 }
 
 // The properties for a remote Command resource.
 type CommandOutputs struct {
 	CommandInputs
 	BaseOutputs
+	ReadStdOut string                      `pulumi:"readStdout"`
 }
